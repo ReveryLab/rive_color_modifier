@@ -10,7 +10,12 @@ import 'package:rive_color_modifier/src/rive_color_component.dart';
 class RiveCustomRenderObject extends RiveRenderObject {
   List<RiveColorComponent> _components = [];
 
-  RiveCustomRenderObject(super.artboard);
+  final bool skipThrowException;
+
+  RiveCustomRenderObject(
+    super.artboard, {
+    this.skipThrowException = true,
+  });
 
   /// The list of [RiveColorComponent]s that define the color modifications to apply.
   List<RiveColorComponent> get components => _components;
@@ -42,7 +47,7 @@ class RiveCustomRenderObject extends RiveRenderObject {
           component.fill = null;
         }
 
-        if (component.fill == null) {
+        if (component.fill == null && !skipThrowException) {
           throw Exception(
             "Could not find fill named: ${component.fillName}",
           );
@@ -51,19 +56,21 @@ class RiveCustomRenderObject extends RiveRenderObject {
           component.strokeName != null &&
           component.shape!.strokes.isNotEmpty) {
         try {
-          component.stroke = component.shape!.strokes
-              .firstWhere((stroke) => stroke.name == component.strokeName);
+          component.stroke =
+              component.shape!.strokes.firstWhere((stroke) => stroke.name == component.strokeName);
         } catch (e) {
           component.stroke = null;
         }
 
-        if (component.stroke == null) {
+        if (component.stroke == null && !skipThrowException) {
           throw Exception(
             "Could not find stroke named: ${component.strokeName}",
           );
         }
       } else {
-        throw Exception("Could not find shape named: ${component.shapeName}");
+        if (!skipThrowException) {
+          throw Exception("Could not find shape named: ${component.shapeName}");
+        }
       }
     }
 
@@ -83,16 +90,46 @@ class RiveCustomRenderObject extends RiveRenderObject {
   void draw(Canvas canvas, Mat2D viewTransform) {
     for (final component in _components) {
       if (component.fill != null) {
-        component.fill!.paint.color =
-            component.color.withAlpha(component.fill!.paint.color.alpha);
+        component.fill!.paint.color = component.color.withAlpha(component.fill!.paint.color.alpha);
       } else if (component.stroke != null) {
-        component.stroke!.paint.color =
-            component.color.withAlpha(component.stroke!.paint.color.alpha);
+        final stroke = component.stroke;
+        LinearGradient? linearGradient;
+        if (stroke != null) {
+          for (var child in stroke.children) {
+            if (child is LinearGradient) {
+              linearGradient = child;
+              break;
+            }
+          }
+        }
+
+        ///Process color in case Shape is Gradient
+        if (linearGradient != null) {
+          var world = linearGradient.shapePaintContainer!.worldTransform;
+          var worldStart = world * linearGradient.start;
+          var worldEnd = world * linearGradient.end;
+          final startOffset = Offset(worldStart.x, worldStart.y);
+          final endOffset = Offset(worldEnd.x, worldEnd.y);
+          component.stroke?.paint.shader = Gradient.linear(
+              startOffset,
+              endOffset,
+              [
+                component.color.withAlpha(component.stroke!.paint.color.alpha),
+                ...linearGradient.gradientStops.sublist(1).asMap().entries.map((e) => component
+                    .color
+                    .withAlpha((component.stroke!.paint.color.alpha ~/ (e.key + 2)))),
+              ],
+              linearGradient.gradientStops.map((e) => e.position).toList());
+        } else {
+          component.stroke!.paint.color =
+              component.color.withAlpha(component.stroke!.paint.color.alpha);
+        }
       } else {
-        throw Exception("Could not find fill or stroke for component");
+        if (!skipThrowException) {
+          throw Exception("Could not find fill or stroke for component");
+        }
       }
     }
-
     super.draw(canvas, viewTransform);
   }
 }
