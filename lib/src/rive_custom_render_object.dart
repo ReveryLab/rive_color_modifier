@@ -88,6 +88,9 @@ class RiveCustomRenderObject extends RiveRenderObject {
   /// draw the components on the canvas.
   @override
   void draw(Canvas canvas, Mat2D viewTransform) {
+    if (!attached) {
+      return;
+    }
     for (final component in _components) {
       if (component.fill != null) {
         component.fill!.paint.color = component.color.withAlpha(component.fill!.paint.color.alpha);
