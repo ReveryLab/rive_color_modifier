@@ -91,48 +91,51 @@ class RiveCustomRenderObject extends RiveRenderObject {
     if (!attached) {
       return;
     }
-    for (final component in _components) {
-      if (component.fill != null) {
-        component.fill!.paint.color = component.color.withAlpha(component.fill!.paint.color.alpha);
-      } else if (component.stroke != null) {
-        final stroke = component.stroke;
-        LinearGradient? linearGradient;
-        if (stroke != null) {
-          for (var child in stroke.children) {
-            if (child is LinearGradient) {
-              linearGradient = child;
-              break;
+    try {
+      for (final component in _components) {
+        if (component.fill != null) {
+          component.fill!.paint.color =
+              component.color.withAlpha(component.fill!.paint.color.alpha);
+        } else if (component.stroke != null) {
+          final stroke = component.stroke;
+          LinearGradient? linearGradient;
+          if (stroke != null) {
+            for (var child in stroke.children) {
+              if (child is LinearGradient) {
+                linearGradient = child;
+                break;
+              }
             }
           }
-        }
 
-        ///Process color in case Shape is Gradient
-        if (linearGradient != null) {
-          var world = linearGradient.shapePaintContainer!.worldTransform;
-          var worldStart = world * linearGradient.start;
-          var worldEnd = world * linearGradient.end;
-          final startOffset = Offset(worldStart.x, worldStart.y);
-          final endOffset = Offset(worldEnd.x, worldEnd.y);
-          component.stroke?.paint.shader = Gradient.linear(
-              startOffset,
-              endOffset,
-              [
-                component.color.withAlpha(component.stroke!.paint.color.alpha),
-                ...linearGradient.gradientStops.sublist(1).asMap().entries.map((e) => component
-                    .color
-                    .withAlpha((component.stroke!.paint.color.alpha ~/ (e.key + 2)))),
-              ],
-              linearGradient.gradientStops.map((e) => e.position).toList());
+          ///Process color in case Shape is Gradient
+          if (linearGradient != null) {
+            var world = linearGradient.shapePaintContainer!.worldTransform;
+            var worldStart = world * linearGradient.start;
+            var worldEnd = world * linearGradient.end;
+            final startOffset = Offset(worldStart.x, worldStart.y);
+            final endOffset = Offset(worldEnd.x, worldEnd.y);
+            component.stroke?.paint.shader = Gradient.linear(
+                startOffset,
+                endOffset,
+                [
+                  component.color.withAlpha(component.stroke!.paint.color.alpha),
+                  ...linearGradient.gradientStops.sublist(1).asMap().entries.map((e) => component
+                      .color
+                      .withAlpha((component.stroke!.paint.color.alpha ~/ (e.key + 2)))),
+                ],
+                linearGradient.gradientStops.map((e) => e.position).toList());
+          } else {
+            component.stroke!.paint.color =
+                component.color.withAlpha(component.stroke!.paint.color.alpha);
+          }
         } else {
-          component.stroke!.paint.color =
-              component.color.withAlpha(component.stroke!.paint.color.alpha);
-        }
-      } else {
-        if (!skipThrowException) {
-          throw Exception("Could not find fill or stroke for component");
+          if (!skipThrowException) {
+            throw Exception("Could not find fill or stroke for component");
+          }
         }
       }
-    }
+    } catch (e) {}
     super.draw(canvas, viewTransform);
   }
 }
