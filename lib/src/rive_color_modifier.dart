@@ -45,9 +45,5 @@ class RiveColorModifier extends LeafRenderObjectWidget {
       ..alignment = alignment
       ..components = components;
   }
-
-  @override
-  void didUnmountRenderObject(covariant RiveCustomRenderObject renderObject) {
-    renderObject.dispose();
-  }
+ 
 }
