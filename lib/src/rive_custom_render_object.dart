@@ -12,6 +12,8 @@ class RiveCustomRenderObject extends RiveRenderObject {
 
   final bool skipThrowException;
   final String nestedArtboard;
+  late RuntimeArtboard kadoArtboard;
+  bool hasNestedArtboard = false;
 
   RiveCustomRenderObject(
     super.artboard, {
@@ -32,12 +34,13 @@ class RiveCustomRenderObject extends RiveRenderObject {
     }
     _components = value;
 
-    RuntimeArtboard kadoArtboard = artboard;
+    kadoArtboard = artboard;
     if (nestedArtboard.isNotEmpty && artboard.activeNestedArtboards.isNotEmpty) {
       for (final nestedArt in artboard.activeNestedArtboards) {
         if (nestedArt.parent?.name == nestedArtboard) {
           final sourceArt = (nestedArt as RuntimeNestedArtboard).sourceArtboard;
           kadoArtboard = sourceArt as RuntimeArtboard;
+          hasNestedArtboard = true;
           break;
         }
       }
@@ -148,7 +151,14 @@ class RiveCustomRenderObject extends RiveRenderObject {
           }
         }
       }
-    } catch (e) {}
-    super.draw(canvas, viewTransform);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    if (hasNestedArtboard) {
+      canvas.transform(viewTransform.mat4);
+      kadoArtboard.draw(canvas);
+    } else {
+      super.draw(canvas, viewTransform);
+    }
   }
 }
