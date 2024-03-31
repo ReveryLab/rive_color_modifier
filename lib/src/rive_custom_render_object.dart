@@ -155,7 +155,7 @@ class RiveCustomRenderObject extends RiveRenderObject {
       debugPrint(e.toString());
     }
     if (hasNestedArtboard) {
-      canvas.transform(viewTransform.mat4);
+      super.draw(canvas, viewTransform);
       kadoArtboard.draw(canvas);
     } else {
       super.draw(canvas, viewTransform);
