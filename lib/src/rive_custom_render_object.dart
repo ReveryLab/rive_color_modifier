@@ -11,10 +11,12 @@ class RiveCustomRenderObject extends RiveRenderObject {
   List<RiveColorComponent> _components = [];
 
   final bool skipThrowException;
+  final String nestedArtboard;
 
   RiveCustomRenderObject(
     super.artboard, {
     this.skipThrowException = true,
+    required this.nestedArtboard,
   });
 
   /// The list of [RiveColorComponent]s that define the color modifications to apply.
@@ -30,8 +32,19 @@ class RiveCustomRenderObject extends RiveRenderObject {
     }
     _components = value;
 
+    RuntimeArtboard kadoArtboard = artboard;
+    if (nestedArtboard.isNotEmpty && artboard.activeNestedArtboards.isNotEmpty) {
+      for (final nestedArt in artboard.activeNestedArtboards) {
+        if (nestedArt.parent?.name == nestedArtboard) {
+          final sourceArt = (nestedArt as RuntimeNestedArtboard).sourceArtboard;
+          kadoArtboard = sourceArt as RuntimeArtboard;
+          break;
+        }
+      }
+    }
+
     for (final component in _components) {
-      component.shape = artboard.objects.firstWhere(
+      component.shape = kadoArtboard.objects.firstWhere(
         (object) => object is Shape && object.name == component.shapeName,
         orElse: () => null,
       ) as Shape?;

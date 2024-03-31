@@ -11,6 +11,7 @@ class RiveColorModifier extends LeafRenderObjectWidget {
   final Alignment alignment;
   final bool skipThrowException;
   final List<RiveColorComponent> components;
+  final String nestedArtboard;
 
   /// Creates a [RiveColorModifier].
   ///
@@ -22,6 +23,7 @@ class RiveColorModifier extends LeafRenderObjectWidget {
     super.key,
     required this.artboard,
     this.skipThrowException = true,
+    this.nestedArtboard = '',
     this.fit = BoxFit.contain,
     this.alignment = Alignment.center,
     this.components = const [],
@@ -29,8 +31,11 @@ class RiveColorModifier extends LeafRenderObjectWidget {
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return RiveCustomRenderObject(artboard as RuntimeArtboard,
-        skipThrowException: skipThrowException)
+    return RiveCustomRenderObject(
+      artboard as RuntimeArtboard,
+      skipThrowException: skipThrowException,
+      nestedArtboard: nestedArtboard,
+    )
       ..artboard = artboard
       ..fit = fit
       ..alignment = alignment
@@ -45,5 +50,4 @@ class RiveColorModifier extends LeafRenderObjectWidget {
       ..alignment = alignment
       ..components = components;
   }
- 
 }
