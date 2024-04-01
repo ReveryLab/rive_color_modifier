@@ -48,7 +48,7 @@ class RiveCustomRenderObject extends RiveRenderObject {
       for (var e in kadoArtboard.objects) {
         if (e is Node && e.name == nestedArtboard) {
           final RuntimeNestedArtboard run = e.children.first as RuntimeNestedArtboard;
-          artboard = run.sourceArtboard as RuntimeArtboard;
+          kadoArtboard = run.sourceArtboard as RuntimeArtboard;
           break;
         }
       }
