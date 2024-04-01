@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+import 'package:rive/components.dart';
 import 'package:rive/math.dart' show Mat2D;
 import 'package:rive/rive.dart';
 
@@ -36,11 +37,18 @@ class RiveCustomRenderObject extends RiveRenderObject {
 
     kadoArtboard = artboard;
     if (nestedArtboard.isNotEmpty && artboard.activeNestedArtboards.isNotEmpty) {
-      for (final nestedArt in artboard.activeNestedArtboards) {
-        if (nestedArt.parent?.name == nestedArtboard) {
-          final sourceArt = (nestedArt as RuntimeNestedArtboard).sourceArtboard;
-          kadoArtboard = sourceArt as RuntimeArtboard;
-          hasNestedArtboard = true;
+      // for (final nestedArt in artboard.activeNestedArtboards) {
+      //   if (nestedArt.parent?.name == nestedArtboard) {
+      //     final sourceArt = (nestedArt as RuntimeNestedArtboard).sourceArtboard;
+      //     kadoArtboard = sourceArt as RuntimeArtboard;
+      //     hasNestedArtboard = true;
+      //     break;
+      //   }
+      // }
+      for (var e in kadoArtboard.objects) {
+        if (e is Node && e.name == nestedArtboard) {
+          final RuntimeNestedArtboard run = e.children.first as RuntimeNestedArtboard;
+          artboard = run.sourceArtboard as RuntimeArtboard;
           break;
         }
       }
@@ -154,11 +162,6 @@ class RiveCustomRenderObject extends RiveRenderObject {
     } catch (e) {
       debugPrint(e.toString());
     }
-    if (hasNestedArtboard) {
-      super.draw(canvas, viewTransform);
-      kadoArtboard.draw(canvas);
-    } else {
-      super.draw(canvas, viewTransform);
-    }
+    super.draw(canvas, viewTransform);
   }
 }
