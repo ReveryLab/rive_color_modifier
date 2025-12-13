@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  rive: ^0.14.0
+  rive: ^0.13.20
   rive_color_modifier:
     path: ../
   animated_theme_switcher: ^2.0.10
